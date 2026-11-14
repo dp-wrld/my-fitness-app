@@ -33,40 +33,23 @@ fun WorkoutScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text("Workouts", fontWeight = FontWeight.Bold)
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                title = { Text("Workouts", fontWeight = FontWeight.Bold) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showAddDialog = true },
-                containerColor = MaterialTheme.colorScheme.primary
-            ) {
+            FloatingActionButton(onClick = { showAddDialog = true }, containerColor = MaterialTheme.colorScheme.primary) {
                 Icon(Icons.Default.Add, contentDescription = "Add Workout", tint = Color.White)
             }
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
+            modifier = Modifier.fillMaxSize().padding(paddingValues),
             contentPadding = PaddingValues(16.dp, 8.dp, 16.dp, 100.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Category filter
-            item {
-                CategoryFilterRow(
-                    selected = uiState.selectedCategory,
-                    onSelect = viewModel::selectCategory
-                )
-            }
-
-            // Weekly summary
+            item { CategoryFilterRow(selected = uiState.selectedCategory, onSelect = viewModel::selectCategory) }
             item {
                 WeeklySummaryCard(
                     totalWorkouts = uiState.weeklyWorkouts,
@@ -74,12 +57,8 @@ fun WorkoutScreen(
                     totalMinutes = uiState.weeklyMinutes
                 )
             }
-
-            // Workout list
             if (uiState.workouts.isEmpty()) {
-                item {
-                    EmptyWorkoutState(onAdd = { showAddDialog = true })
-                }
+                item { EmptyWorkoutState(onAdd = { showAddDialog = true }) }
             } else {
                 items(uiState.workouts, key = { it.id }) { workout ->
                     WorkoutCard(
@@ -113,10 +92,7 @@ fun CategoryFilterRow(selected: String, onSelect: (String) -> Unit) {
         "HIIT" to ColorError,
         "Flexibility" to AccentPurple
     )
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
         categories.forEach { cat ->
             val color = colors[cat] ?: Primary
             FilterChip(
@@ -144,9 +120,9 @@ fun WeeklySummaryCard(totalWorkouts: Int, totalCalories: Int, totalMinutes: Int)
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             SummaryItem("Workouts", totalWorkouts.toString(), AccentBlue)
-            Divider(modifier = Modifier.height(40.dp).width(1.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+            VerticalDivider(modifier = Modifier.height(40.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
             SummaryItem("Calories", "${totalCalories}kcal", AccentOrange)
-            Divider(modifier = Modifier.height(40.dp).width(1.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+            VerticalDivider(modifier = Modifier.height(40.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
             SummaryItem("Minutes", totalMinutes.toString(), AccentGreen)
         }
     }
@@ -161,11 +137,7 @@ fun SummaryItem(label: String, value: String, color: Color) {
 }
 
 @Composable
-fun WorkoutCard(
-    workout: WorkoutEntity,
-    onToggleComplete: () -> Unit,
-    onDelete: () -> Unit
-) {
+fun WorkoutCard(workout: WorkoutEntity, onToggleComplete: () -> Unit, onDelete: () -> Unit) {
     val sdf = SimpleDateFormat("MMM d, hh:mm a", Locale.getDefault())
     val categoryColor = when (workout.category) {
         "Strength" -> AccentOrange
@@ -179,15 +151,9 @@ fun WorkoutCard(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Category badge
+        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(categoryColor.copy(alpha = 0.15f), RoundedCornerShape(12.dp)),
+                modifier = Modifier.size(48.dp).background(categoryColor.copy(alpha = 0.15f), RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -205,28 +171,11 @@ fun WorkoutCard(
             }
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = workout.name,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = "${workout.durationMinutes} min • ${workout.caloriesBurned} kcal",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = sdf.format(Date(workout.date)),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Text(workout.name, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                Text("${workout.durationMinutes} min • ${workout.caloriesBurned} kcal", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(sdf.format(Date(workout.date)), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Checkbox(
-                checked = workout.isCompleted,
-                onCheckedChange = { onToggleComplete() },
-                colors = CheckboxDefaults.colors(checkedColor = AccentGreen)
-            )
+            Checkbox(checked = workout.isCompleted, onCheckedChange = { onToggleComplete() }, colors = CheckboxDefaults.colors(checkedColor = AccentGreen))
             IconButton(onClick = onDelete) {
                 Icon(Icons.Default.Delete, contentDescription = "Delete", tint = ColorError.copy(alpha = 0.7f))
             }
@@ -236,10 +185,7 @@ fun WorkoutCard(
 
 @Composable
 fun EmptyWorkoutState(onAdd: () -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+    Column(modifier = Modifier.fillMaxWidth().padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Icon(Icons.Default.FitnessCenter, contentDescription = null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
         Spacer(modifier = Modifier.height(16.dp))
         Text("No workouts yet", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -249,11 +195,9 @@ fun EmptyWorkoutState(onAdd: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddWorkoutDialog(
-    onDismiss: () -> Unit,
-    onAdd: (String, String, Int, Int, String) -> Unit
-) {
+fun AddWorkoutDialog(onDismiss: () -> Unit, onAdd: (String, String, Int, Int, String) -> Unit) {
     var name by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("Strength") }
     var duration by remember { mutableStateOf("30") }
@@ -268,17 +212,8 @@ fun AddWorkoutDialog(
         title = { Text("Log Workout", fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Workout Name") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = it }
-                ) {
+                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Workout Name") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
                     OutlinedTextField(
                         value = category,
                         onValueChange = {},
@@ -288,47 +223,25 @@ fun AddWorkoutDialog(
                         modifier = Modifier.menuAnchor().fillMaxWidth()
                     )
                     ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                        categories.forEach { cat ->
-                            DropdownMenuItem(text = { Text(cat) }, onClick = { category = cat; expanded = false })
-                        }
+                        categories.forEach { cat -> DropdownMenuItem(text = { Text(cat) }, onClick = { category = cat; expanded = false }) }
                     }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = duration,
-                        onValueChange = { duration = it },
-                        label = { Text("Duration (min)") },
-                        modifier = Modifier.weight(1f),
-                        singleLine = true
-                    )
-                    OutlinedTextField(
-                        value = calories,
-                        onValueChange = { calories = it },
-                        label = { Text("Calories") },
-                        modifier = Modifier.weight(1f),
-                        singleLine = true
-                    )
+                    OutlinedTextField(value = duration, onValueChange = { duration = it.filter(Char::isDigit).take(3) }, label = { Text("Duration (min)") }, modifier = Modifier.weight(1f), singleLine = true)
+                    OutlinedTextField(value = calories, onValueChange = { calories = it.filter(Char::isDigit).take(4) }, label = { Text("Calories") }, modifier = Modifier.weight(1f), singleLine = true)
                 }
-                OutlinedTextField(
-                    value = notes,
-                    onValueChange = { notes = it },
-                    label = { Text("Notes (optional)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    maxLines = 2
-                )
+                OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notes (optional)") }, modifier = Modifier.fillMaxWidth(), maxLines = 2)
             }
         },
         confirmButton = {
-            Button(
-                onClick = {
-                    if (name.isNotBlank()) {
-                        onAdd(name, category, duration.toIntOrNull() ?: 30, calories.toIntOrNull() ?: 0, notes)
-                    }
+            Button(onClick = {
+                val minutes = duration.toIntOrNull()
+                val burned = calories.toIntOrNull()
+                if (name.isNotBlank() && minutes != null && minutes > 0 && burned != null) {
+                    onAdd(name.trim(), category, minutes, burned, notes.trim())
                 }
-            ) { Text("Log Workout") }
+            }) { Text("Log Workout") }
         },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
-        }
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
 }
