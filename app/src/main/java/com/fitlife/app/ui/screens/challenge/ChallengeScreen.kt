@@ -50,15 +50,12 @@ fun ChallengeScreen(
             contentPadding = PaddingValues(16.dp, 8.dp, 16.dp, 100.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Pre-built challenges
             item {
                 Text("🏆 Active Challenges", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             }
 
             if (uiState.activeChallenges.isEmpty()) {
-                item {
-                    EmptyChallengeState(onBrowse = { showAddDialog = true })
-                }
+                item { EmptyChallengeState(onBrowse = { showAddDialog = true }) }
             } else {
                 items(uiState.activeChallenges, key = { it.id }) { challenge ->
                     ChallengeCard(
@@ -84,7 +81,6 @@ fun ChallengeScreen(
                 )
             }
 
-            // Template challenges
             item {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text("💡 Popular Challenges", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
@@ -130,7 +126,7 @@ fun ChallengeCard(
     onLogDay: () -> Unit,
     onDelete: () -> Unit
 ) {
-    val progress = completedDays.toFloat() / challenge.durationDays.toFloat()
+    val progress = (completedDays.toFloat() / challenge.durationDays.toFloat()).coerceIn(0f, 1f)
     val categoryColor = when (challenge.category) {
         "Strength" -> AccentOrange
         "Cardio" -> AccentBlue
@@ -236,6 +232,7 @@ fun EmptyChallengeState(onBrowse: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddChallengeDialog(onDismiss: () -> Unit, onAdd: (String, String, Int, String) -> Unit) {
     var title by remember { mutableStateOf("") }
@@ -253,9 +250,16 @@ fun AddChallengeDialog(onDismiss: () -> Unit, onAdd: (String, String, Int, Strin
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Challenge Title") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                 OutlinedTextField(value = desc, onValueChange = { desc = it }, label = { Text("Description") }, modifier = Modifier.fillMaxWidth(), maxLines = 2)
-                OutlinedTextField(value = days, onValueChange = { days = it }, label = { Text("Duration (days)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                OutlinedTextField(value = days, onValueChange = { days = it.filter(Char::isDigit).take(3) }, label = { Text("Duration (days)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                 ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
-                    OutlinedTextField(value = category, onValueChange = {}, readOnly = true, label = { Text("Category") }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) }, modifier = Modifier.menuAnchor().fillMaxWidth())
+                    OutlinedTextField(
+                        value = category,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Category") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+                        modifier = Modifier.menuAnchor().fillMaxWidth()
+                    )
                     ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                         categories.forEach { DropdownMenuItem(text = { Text(it) }, onClick = { category = it; expanded = false }) }
                     }
@@ -263,7 +267,10 @@ fun AddChallengeDialog(onDismiss: () -> Unit, onAdd: (String, String, Int, Strin
             }
         },
         confirmButton = {
-            Button(onClick = { if (title.isNotBlank()) onAdd(title, desc, days.toIntOrNull() ?: 30, category) }) { Text("Start Challenge") }
+            Button(onClick = {
+                val duration = days.toIntOrNull()
+                if (title.isNotBlank() && duration != null && duration > 0) onAdd(title.trim(), desc.trim(), duration, category)
+            }) { Text("Start Challenge") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
